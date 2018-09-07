@@ -1,155 +1,3 @@
-const icons = ["fa fa-diamond", "fa fa-bolt", "fa fa-paper-plane-o", "fa fa-paper-plane-o",
-    "fa fa-anchor", "fa fa-anchor", "fa fa-bolt", "fa fa-diamond", "fa fa-bicycle", "fa fa-cube",
-    "fa fa-bomb", "fa fa-leaf", "fa fa-cube", "fa fa-bicycle", "fa fa-leaf", "fa fa-bomb"
-];
-const cardsContainer = document.querySelector(".deck");
-
-let openedCards = [];
-let matchedCards = [];
-
-
-function init() {
-    for (let i = 0; i < icons.length; i++) {
-        const card = document.createElement("li");
-        card.classList.add("card");
-        card.innerHTML = `<i class="${icons[i]}"></i>`;
-        cardsContainer.appendChild(card);
-
-
-        click(card);
-    }
-}
-let isFirstClick = true;
-
-function click(card) {
-    card.addEventListener("click", function() {
-        if (isFirstClick) {
-            startTimer();
-            isFirstClick = false;
-        }
-        const currentCard = this;
-        const previousCard = openedCards[0];
-        if (openedCards.length === 1) {
-
-            card.classList.add("open", "show", "disable");
-            openedCards.push(this);
-            compare(currentCard, previousCard);
-        } else {
-            currentCard.classList.add("open", "show", "disable");
-            openedCards.push(this);
-        }
-
-    });
-}
-
-function compare(currentCard, previousCard) {
-    if (currentCard.innerHTML === previousCard.innerHTML) {
-        currentCard.classList.add("match");
-        previousCard.classList.add("match");
-        matchedCards.push(currentCard, previousCard);
-        openedCards = [];
-        isOver();
-
-    } else {
-        setTimeout(function() {
-            currentCard.classList.remove("open", "show", "disable");
-            previousCard.classList.remove("open", "show", "disable");
-
-        }, 500);
-
-        openedCards = [];
-
-    }
-
-    addMove();
-}
-
-function isOver() {
-    if (matchedCards.length === icons.length) {
-
-
-        stopTimer();
-
-        alert("GAME OVER!");
-
-    }
-}
-const movesContainer = document.querySelector(".moves");
-let moves = 0;
-movesContainer.innerHTML = 0;
-
-function addMove() {
-    moves++;
-    movesContainer.innerHTML = moves;
-
-
-    rating();
-}
-
-const starsContainer = document.querySelector(".stars");
-const star = `<li><i class="fa fa-star"></i></li>`;
-starsContainer.innerHTML = star + star + star;
-
-function rating() {
-
-    if (moves < 10) {
-        starsContainer.innerHTML = star + star + star;
-    } else if (moves < 15) {
-        starsContainer.innerHTML = star + star;
-    } else {
-        starsContainer.innerHTML = star;
-    }
-}
-
-
-const timerContainer = document.querySelector(".timer");
-let liveTimer,
-    totalSeconds = 0;
-
-timerContainer.innerHTML = totalSeconds + 's';
-
-function startTimer() {
-    liveTimer = setInterval(function() {
-
-        totalSeconds++;
-
-        timerContainer.innerHTML = totalSeconds + 's';
-    }, 1000);
-}
-
-function stopTimer() {
-    clearInterval(liveTimer);
-}
-
-const restartBtn = document.querySelector(".restart");
-restartBtn.addEventListener("click", function() {
-    cardsContainer.innerHTML = "";
-    init();
-
-    reset();
-
-});
-
-function reset() {
-
-    matchedCards = [];
-
-
-    moves = 0;
-    movesContainer.innerHTML = moves;
-
-
-    starsContainer.innerHTML = star + star + star;
-
-    stopTimer();
-    isFirstClick = true;
-    totalSeconds = 0;
-    timerContainer.innerHTML = totalSeconds + "s";
-}
-
-
-init();
-
 function shuffle(array) {
     var currentIndex = array.length,
         temporaryValue, randomIndex;
@@ -163,4 +11,204 @@ function shuffle(array) {
     }
 
     return array;
-}
+};
+
+
+
+var deck = ["fa-diamond", "fa-diamond", "fa-paper-plane-o", "fa-paper-plane-o", "fa-anchor", "fa-anchor",
+    "fa-bolt", "fa-bolt", "fa-cube", "fa-cube", "fa-leaf", "fa-leaf",
+    "fa-bicycle", "fa-bicycle", "fa-bomb", "fa-bomb"
+];
+
+
+var open = [];
+var matched = 0;
+var moveCounter = 0;
+var numStars = 3;
+var timer = {
+    seconds: 0,
+    minutes: 0,
+    clearTime: -1
+};
+
+
+var hard = 15;
+var medium = 20;
+
+var modal = $("#win-modal");
+
+
+
+
+var startTimer = function() {
+    if (timer.seconds === 59) {
+        timer.minutes++;
+        timer.seconds = 0;
+    } else {
+        timer.seconds++;
+    }
+
+
+    var formattedSec = "0";
+    if (timer.seconds < 10) {
+        formattedSec += timer.seconds
+    } else {
+        formattedSec = String(timer.seconds);
+    }
+
+    var time = String(timer.minutes) + ":" + formattedSec;
+    $(".timer").text(time);
+};
+
+
+function resetTimer() {
+    clearInterval(timer.clearTime);
+    timer.seconds = 0;
+    timer.minutes = 0;
+    $(".timer").text("0:00");
+
+    timer.clearTime = setInterval(startTimer, 1000);
+};
+
+
+function updateCards() {
+    deck = shuffle(deck);
+    var index = 0;
+    $.each($(".card i"), function() {
+        $(this).attr("class", "fa " + deck[index]);
+        index++;
+    });
+    resetTimer();
+};
+
+
+function showModal() {
+    modal.css("display", "block");
+};
+
+
+function removeStar() {
+    $(".fa-star").last().attr("class", "fa fa-star-o");
+    numStars--;
+    $(".num-stars").text(String(numStars));
+};
+
+
+function resetStars() {
+    $(".fa-star-o").attr("class", "fa fa-star");
+    numStars = 3;
+    $(".num-stars").text(String(numStars));
+};
+
+
+function updateMoveCounter() {
+    $(".moves").text(moveCounter);
+
+    if (moveCounter === hard || moveCounter === medium) {
+        removeStar();
+    }
+};
+
+
+function isValid(card) {
+    return !(card.hasClass("open") || card.hasClass("match"));
+};
+
+
+function checkMatch() {
+    if (open[0].children().attr("class") === open[1].children().attr("class")) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+
+function hasWon() {
+    if (matched === 16) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+
+var setMatch = function() {
+    open.forEach(function(card) {
+        card.addClass("match");
+    });
+    open = [];
+    matched += 2;
+
+    if (hasWon()) {
+        clearInterval(timer.clearTime);
+        showModal();
+    }
+};
+
+
+var resetOpen = function() {
+    open.forEach(function(card) {
+        card.toggleClass("open");
+        card.toggleClass("show");
+    });
+    open = [];
+};
+
+
+function openCard(card) {
+    if (!card.hasClass("open")) {
+        card.addClass("open");
+        card.addClass("show");
+        open.push(card);
+    }
+};
+
+
+var resetGame = function() {
+    open = [];
+    matched = 0;
+    moveCounter = 0;
+    resetTimer();
+    updateMoveCounter();
+    $(".card").attr("class", "card");
+    updateCards();
+    resetStars();
+};
+
+
+var onClick = function() {
+    if (isValid($(this))) {
+
+        if (open.length === 0) {
+            openCard($(this));
+
+        } else if (open.length === 1) {
+            openCard($(this));
+            moveCounter++;
+            updateMoveCounter();
+
+            if (checkMatch()) {
+                setTimeout(setMatch, 300);
+
+            } else {
+                setTimeout(resetOpen, 700);
+
+            }
+        }
+    }
+};
+
+
+var playAgain = function() {
+    resetGame();
+    modal.css("display", "none");
+};
+
+
+$(".card").click(onClick);
+$(".restart").click(resetGame);
+$(".play-again").click(playAgain);
+
+
+$(updateCards);
