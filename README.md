@@ -24,7 +24,7 @@ For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Dependencies Section
 
 the frame works used in this project :-
-[font awesome](#font awesome)
-[bootstrap](#bootstrap)
-[jQuery](#jQuery)
+*[font awesome](#font awesome)
+*[bootstrap](#bootstrap)
+*[jQuery](#jQuery)
 
